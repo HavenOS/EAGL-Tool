@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace EAGL_Tool
 {
@@ -65,19 +67,23 @@ namespace EAGL_Tool
                 return this.strText;
             }
         }
-        private void parseentries(string name, int entry)
+        private void ParsetoData()
         {
-            for (int i = 0; i < entries;)
+            string str = Convert.ToString(imgname);
+            List<int> intList = new List<int>();
+            DataGridViewRow dataGridViewRow = new DataGridViewRow();
+            foreach (int num in str)
             {
-                listBox1.Items.Add(new ListItem { Name = name, Value = entry });
-
-                i += entries;
-                break;
-
+                dataGridViewRow.CreateCells(this.dataGridView1);
+                dataGridViewRow.Cells[0].Value = imgname;
+                dataGridViewRow.Cells[1].Value = entryoffset;
+                
 
             }
+            this.dataGridView1.Rows.Add(dataGridViewRow);
 
         }
+        
         private void getinfo()
         {
             BinaryReader br = new BinaryReader(File.OpenRead(ofd.FileName));
@@ -103,13 +109,13 @@ namespace EAGL_Tool
                 data = br.ReadBytes(count2);
                 EAGLVersion = System.Text.Encoding.UTF8.GetString(data).ToString();
                 textBox4.Text = EAGLVersion;
-                for (int k = 0; k <= entries;)
+                for (int k = 1; k <= entries;)
                 {
                     // Read entry
                     data = br.ReadBytes(4);
-
+                    imgname = System.Text.Encoding.UTF8.GetString(data).ToString();
                     entryoffset = BitConverter.ToInt32(br.ReadBytes(count2), 0);
-                    parseentries(System.Text.Encoding.UTF8.GetString(data).ToString(), entryoffset);
+                    ParsetoData();
                     k ++;
                 }
                 i ++;
@@ -119,7 +125,7 @@ namespace EAGL_Tool
             br.Close();
 
         }
-        private void texturedata()
+        private void texturedata(int ks)
         {
             BinaryReader br = new BinaryReader(File.OpenRead(ofd.FileName));
             //bytes to read
@@ -127,8 +133,8 @@ namespace EAGL_Tool
             int count2 = 3;
             byte[] data;
             //retrieve values of list box selected item
-            var value = ((ListItem)listBox1.SelectedItem).Value;
-            for (int i = Convert.ToInt32(value); i <= filesize;)
+            
+            for (int i = ks; i <= filesize;)
             {
                 // img info
                 //set binary reader to go the offset of selected item in listbox
@@ -182,6 +188,7 @@ namespace EAGL_Tool
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 getinfo();
+                label14.Text = ofd.FileName;
             }
         }
 
@@ -201,14 +208,31 @@ namespace EAGL_Tool
         }
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var value = ((ListItem)listBox1.SelectedItem).Value;
-            texturedata();
+            
+            
 
         }
 
         private void textBox5_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void listBox1_SelectedValueChanged(object sender, EventArgs e)
+        {
+            
+
+        }
+
+        private void listBox1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            int off = Convert.ToInt32(dataGridView1.Rows[dataGridView1.CurrentRow.Index].Cells["Column2"].Value);
+            texturedata(off);
         }
     }
 }
